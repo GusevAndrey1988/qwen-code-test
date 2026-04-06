@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FormField, FieldControls } from '../molecules';
+import { FormField, FieldControls, FieldConfigPanel } from '../molecules';
 import { Button } from '../atoms';
 import './FormBuilder.css';
 
@@ -7,9 +7,11 @@ export function FormBuilder() {
   const [fields, setFields] = useState([]);
   const [formValues, setFormValues] = useState({});
   const [formTitle, setFormTitle] = useState('Моя форма');
-
+  const [selectedFieldId, setSelectedFieldId] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  
   const generateId = () => `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+  
   const addField = useCallback((type) => {
     const fieldLabels = {
       text: 'Текстовое поле',
@@ -44,7 +46,10 @@ export function FormBuilder() {
     const newValues = { ...formValues };
     delete newValues[fieldId];
     setFormValues(newValues);
-  }, [fields, formValues]);
+    if (selectedFieldId === fieldId) {
+      setSelectedFieldId(null);
+    }
+  }, [fields, formValues, selectedFieldId]);
 
   const moveField = useCallback((index, direction) => {
     const newFields = [...fields];
@@ -65,6 +70,10 @@ export function FormBuilder() {
     ));
   }, [fields]);
 
+  const handleEditField = useCallback((fieldId) => {
+    setSelectedFieldId(fieldId === selectedFieldId ? null : fieldId);
+  }, [selectedFieldId]);
+
   const generateHTML = useCallback(() => {
     const fieldsHTML = fields.map(field => {
       const requiredAttr = field.required ? ' required' : '';
@@ -74,7 +83,7 @@ export function FormBuilder() {
           return `
     <div class="form-group">
       <label for="${field.name}">${field.label}${field.required ? ' *' : ''}</label>
-      <textarea id="${field.name}" name="${field.name}" placeholder="${field.placeholder}"${requiredAttr}></textarea>
+      <textarea id="${field.name}" name="${field.name}" placeholder="${field.placeholder}"${requiredAttr} rows="${field.rows || 4}"></textarea>
     </div>`;
         
         case 'select':
@@ -110,10 +119,16 @@ export function FormBuilder() {
     </div>`;
         
         default:
+          const extraAttrs = [
+            field.min ? ` min="${field.min}"` : '',
+            field.max ? ` max="${field.max}"` : '',
+            field.step ? ` step="${field.step}"` : '',
+            field.maxLength ? ` maxlength="${field.maxLength}"` : ''
+          ].join('');
           return `
     <div class="form-group">
       <label for="${field.name}">${field.label}${field.required ? ' *' : ''}</label>
-      <input type="${field.type}" id="${field.name}" name="${field.name}" placeholder="${field.placeholder}"${requiredAttr}>
+      <input type="${field.type}" id="${field.name}" name="${field.name}" placeholder="${field.placeholder}"${requiredAttr}${extraAttrs}>
     </div>`;
       }
     }).join('');
@@ -168,6 +183,8 @@ export function FormBuilder() {
     alert('HTML код скопирован в буфер обмена!');
   }, [generateHTML]);
 
+  const selectedField = fields.find(f => f.id === selectedFieldId);
+
   return (
     <div className="form-builder">
       <div className="builder-header">
@@ -179,6 +196,9 @@ export function FormBuilder() {
           placeholder="Название формы"
         />
         <div className="header-actions">
+          <Button onClick={() => setShowPreview(!showPreview)} variant="primary">
+            {showPreview ? '🔧 Редактор' : '👁️ Предпросмотр'}
+          </Button>
           <Button onClick={copyToClipboard} variant="secondary">
             📋 Копировать HTML
           </Button>
@@ -189,47 +209,171 @@ export function FormBuilder() {
       </div>
 
       <div className="builder-content">
-        <div className="controls-panel">
-          <FieldControls onAddField={addField} />
-          
-          {fields.length > 0 && (
-            <div className="form-actions">
-              <Button onClick={() => setFields([])} variant="danger">
-                🗑️ Очистить все поля
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <div className="preview-panel">
-          <div className="preview-header">
-            <h2>Конструктор формы</h2>
-            <span className="field-count">{fields.length} полей</span>
-          </div>
-          
-          {fields.length === 0 ? (
-            <div className="empty-state">
-              <span className="empty-icon">📝</span>
-              <p>Добавьте поля для начала создания формы</p>
-            </div>
-          ) : (
-            <div className="fields-list">
-              {fields.map((field, index) => (
-                <FormField
-                  key={field.id}
-                  field={field}
-                  value={formValues[field.id] || ''}
-                  onChange={updateFieldValue}
-                  onRemove={() => removeField(field.id)}
-                  onMoveUp={() => moveField(index, -1)}
-                  onMoveDown={() => moveField(index, 1)}
-                  isFirst={index === 0}
-                  isLast={index === fields.length - 1}
+        {!showPreview ? (
+          <>
+            <div className="controls-panel">
+              <FieldControls onAddField={addField} />
+              
+              {selectedField && (
+                <FieldConfigPanel
+                  field={selectedField}
+                  onUpdate={updateFieldConfig}
+                  onClose={() => setSelectedFieldId(null)}
                 />
-              ))}
+              )}
+              
+              {fields.length > 0 && (
+                <div className="form-actions">
+                  <Button onClick={() => setFields([])} variant="danger">
+                    🗑️ Очистить все поля
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            <div className="preview-panel">
+              <div className="preview-header">
+                <h2>Конструктор формы</h2>
+                <span className="field-count">{fields.length} полей</span>
+              </div>
+              
+              {fields.length === 0 ? (
+                <div className="empty-state">
+                  <span className="empty-icon">📝</span>
+                  <p>Добавьте поля для начала создания формы</p>
+                </div>
+              ) : (
+                <div className="fields-list">
+                  {fields.map((field, index) => (
+                    <FormField
+                      key={field.id}
+                      field={field}
+                      value={formValues[field.id] || ''}
+                      onChange={updateFieldValue}
+                      onRemove={() => removeField(field.id)}
+                      onMoveUp={() => moveField(index, -1)}
+                      onMoveDown={() => moveField(index, 1)}
+                      onEdit={() => handleEditField(field.id)}
+                      isFirst={index === 0}
+                      isLast={index === fields.length - 1}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="live-preview-panel">
+            <div className="preview-header">
+              <h2>Предпросмотр формы</h2>
+              <span className="preview-badge">Live Preview</span>
+            </div>
+            <div className="live-preview-content">
+              <div className="preview-form-container">
+                <h1>{formTitle}</h1>
+                <form onSubmit={(e) => e.preventDefault()}>
+                  {fields.map(field => {
+                    switch (field.type) {
+                      case 'textarea':
+                        return (
+                          <div key={field.id} className="form-group">
+                            <label htmlFor={field.name}>
+                              {field.label}{field.required && ' *'}
+                            </label>
+                            <textarea
+                              id={field.name}
+                              name={field.name}
+                              placeholder={field.placeholder}
+                              required={field.required}
+                              rows={field.rows || 4}
+                              value={formValues[field.id] || ''}
+                              onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                            />
+                          </div>
+                        );
+                      case 'select':
+                        return (
+                          <div key={field.id} className="form-group">
+                            <label htmlFor={field.name}>
+                              {field.label}{field.required && ' *'}
+                            </label>
+                            <select
+                              id={field.name}
+                              name={field.name}
+                              required={field.required}
+                              value={formValues[field.id] || ''}
+                              onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                            >
+                              <option value="">Выберите опцию</option>
+                              {field.options?.map((opt, idx) => (
+                                <option key={idx} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      case 'checkbox':
+                        return (
+                          <div key={field.id} className="form-group">
+                            <label className="checkbox-label">
+                              <input
+                                type="checkbox"
+                                name={field.name}
+                                checked={formValues[field.id] === 'yes'}
+                                onChange={(e) => updateFieldValue(field.id, e.target.checked ? 'yes' : '')}
+                              />
+                              <span>{field.label}</span>
+                            </label>
+                          </div>
+                        );
+                      case 'radio':
+                        return (
+                          <div key={field.id} className="form-group">
+                            <label>{field.label}{field.required && ' *'}</label>
+                            <div className="radio-group">
+                              {field.options?.map((opt, idx) => (
+                                <label key={idx} className="radio-option">
+                                  <input
+                                    type="radio"
+                                    name={field.name}
+                                    value={opt}
+                                    checked={formValues[field.id] === opt}
+                                    onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                                  />
+                                  <span>{opt}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      default:
+                        return (
+                          <div key={field.id} className="form-group">
+                            <label htmlFor={field.name}>
+                              {field.label}{field.required && ' *'}
+                            </label>
+                            <input
+                              type={field.type}
+                              id={field.name}
+                              name={field.name}
+                              placeholder={field.placeholder}
+                              required={field.required}
+                              min={field.min}
+                              max={field.max}
+                              step={field.step}
+                              maxLength={field.maxLength}
+                              value={formValues[field.id] || ''}
+                              onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                            />
+                          </div>
+                        );
+                    }
+                  })}
+                  <button type="submit" className="submit-btn">Отправить</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

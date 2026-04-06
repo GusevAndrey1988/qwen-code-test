@@ -116,3 +116,143 @@
   font-size: 16px;
   margin: 0;
 }
+
+/* Live Preview Panel Styles */
+.live-preview-panel {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.preview-header h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 20px;
+}
+
+.preview-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.live-preview-content {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.preview-form-container {
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.preview-form-container h1 {
+  color: #1e293b;
+  margin-bottom: 24px;
+  font-size: 24px;
+}
+
+.preview-form-container .form-group {
+  margin-bottom: 20px;
+}
+
+.preview-form-container label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.preview-form-container input,
+.preview-form-container select,
+.preview-form-container textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.preview-form-container input:focus,
+.preview-form-container select:focus,
+.preview-form-container textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.preview-form-container textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.preview-form-container .checkbox-label,
+.preview-form-container .radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.preview-form-container .checkbox-label input,
+.preview-form-container .radio-option input {
+  width: auto;
+}
+
+.preview-form-container .submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-top: 24px;
+}
+
+.preview-form-container .submit-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Config panel in controls */
+.controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Edit button style */
+.action-btn.edit {
+  background: #f0f4ff;
+  color: #667eea;
+  border: 1px solid #667eea;
+}
+
+.action-btn.edit:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+}

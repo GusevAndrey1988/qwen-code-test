@@ -8,17 +8,18 @@ export function FormField({
   onRemove, 
   onMoveUp, 
   onMoveDown,
+  onEdit,
   isFirst,
   isLast
 }) {
   const handleChange = (e) => {
     onChange(field.id, e.target.value);
   };
-
+  
   const handleCheckboxChange = (e) => {
     onChange(field.id, e.target.checked ? 'yes' : '');
   };
-
+  
   const renderInput = () => {
     switch (field.type) {
       case 'textarea':
@@ -29,7 +30,7 @@ export function FormField({
             onChange={handleChange}
             placeholder={field.placeholder}
             required={field.required}
-            rows={4}
+            rows={field.rows || 4}
             className="field-input"
           />
         );
@@ -85,6 +86,10 @@ export function FormField({
             onChange={handleChange}
             placeholder={field.placeholder}
             required={field.required}
+            min={field.min}
+            max={field.max}
+            step={field.step}
+            maxLength={field.maxLength}
             className="field-input"
           />
         );
@@ -96,6 +101,13 @@ export function FormField({
       <div className="field-header">
         <span className="field-type">{field.type}</span>
         <div className="field-actions">
+          <button 
+            onClick={onEdit} 
+            className="action-btn edit"
+            title="Настроить поле"
+          >
+            ⚙️
+          </button>
           <button 
             onClick={onMoveUp} 
             disabled={isFirst}
